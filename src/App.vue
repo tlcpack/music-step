@@ -7,7 +7,18 @@
           >Music Step Sequencer</v-toolbar-title
         >
       </v-toolbar>
-      <SoundTracks :tracks="tracks" @playsound="playSound" @mutesound="muteSound"></SoundTracks>
+      <SoundTracks
+        :tracks="tracks"
+        @playsound="playSound"
+        @mutesound="muteSound"
+      ></SoundTracks>
+      <SoundControls
+        :tempo.sync="tempo"
+        :counter="counter"
+        :isPlaying="isPlaying"
+        @play="play"
+        @stop="stop"
+      ></SoundControls>
     </v-card>
   </v-app>
 </template>
@@ -15,6 +26,8 @@
 <script>
 import { Howl } from "howler";
 import SoundTracks from "./components/SoundTracks.vue";
+import SoundControls from "./components/SoundControls.vue";
+
 const kick = new Howl({
   src: [
     "https://raw.githubusercontent.com/codeknack/music-step-sequencer/master/src/assets/sounds/kick.mp3",
@@ -41,7 +54,7 @@ let audioContext = new AudioContext();
 export default {
   name: "App",
 
-  components: { SoundTracks},
+  components: { SoundTracks, SoundControls },
   data() {
     return {
       tempo: 120,
@@ -105,11 +118,11 @@ export default {
       }
     },
     playSound(sound) {
-      eval(sound).play()
+      eval(sound).play();
     },
     muteSound(obj) {
-      eval(obj['sound']).mute(!obj['toggle'])
-    }
+      eval(obj["sound"]).mute(!obj["toggle"]);
+    },
   },
 };
 </script>
