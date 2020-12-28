@@ -1,4 +1,5 @@
 # music-step-sequencer
+Creating music in Vue, using https://blog.logrocket.com/build-a-music-step-sequencer-with-vue-and-vuetify/
 
 ## Project setup
 ```
