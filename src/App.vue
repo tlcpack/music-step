@@ -1,60 +1,115 @@
 <template>
   <v-app>
-    <v-app-bar
-      app
-      color="primary"
-      dark
-    >
-      <div class="d-flex align-center">
-        <v-img
-          alt="Vuetify Logo"
-          class="shrink mr-2"
-          contain
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-logo-dark.png"
-          transition="scale-transition"
-          width="40"
-        />
-
-        <v-img
-          alt="Vuetify Name"
-          class="shrink mt-1 hidden-sm-and-down"
-          contain
-          min-width="100"
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-name-dark.png"
-          width="100"
-        />
-      </div>
-
-      <v-spacer></v-spacer>
-
-      <v-btn
-        href="https://github.com/vuetifyjs/vuetify/releases/latest"
-        target="_blank"
-        text
-      >
-        <span class="mr-2">Latest Release</span>
-        <v-icon>mdi-open-in-new</v-icon>
-      </v-btn>
-    </v-app-bar>
-
-    <v-main>
-      <HelloWorld/>
-    </v-main>
+    <v-card dark width="580" class="mx-auto">
+      <v-toolbar color="grey darken-3">
+        <v-icon class="orange--text text--lighten-1 mr-3">mdi-piano</v-icon>
+        <v-toolbar-title class="blue--text headline"
+          >Music Step Sequencer</v-toolbar-title
+        >
+      </v-toolbar>
+      <SoundTracks :tracks="tracks" @playsound="playSound" @mutesound="muteSound"></SoundTracks>
+    </v-card>
   </v-app>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld';
+import { Howl } from "howler";
+import SoundTracks from "./components/SoundTracks.vue";
+const kick = new Howl({
+  src: [
+    "https://raw.githubusercontent.com/codeknack/music-step-sequencer/master/src/assets/sounds/kick.mp3",
+  ],
+});
+const snare = new Howl({
+  src: [
+    "https://raw.githubusercontent.com/codeknack/music-step-sequencer/master/src/assets/sounds/snare.mp3",
+  ],
+});
+const hihat = new Howl({
+  src: [
+    "https://raw.githubusercontent.com/codeknack/music-step-sequencer/master/src/assets/sounds/hihat.mp3",
+  ],
+});
+const shaker = new Howl({
+  src: [
+    "https://raw.githubusercontent.com/codeknack/music-step-sequencer/master/src/assets/sounds/shaker.mp3",
+  ],
+});
+
+let audioContext = new AudioContext();
 
 export default {
-  name: 'App',
+  name: "App",
 
-  components: {
-    HelloWorld,
+  components: { SoundTracks},
+  data() {
+    return {
+      tempo: 120,
+      tracks: {
+        kick: [],
+        snare: [],
+        hihat: [],
+        shaker: [],
+      },
+      futureTickTime: audioContext.currentTime,
+      counter: 0,
+      timerID: null,
+      isPlaying: false,
+    };
   },
-
-  data: () => ({
-    //
-  }),
+  computed: {
+    secondsPerBeat() {
+      return 60 / this.tempo;
+    },
+    counterTimeValue() {
+      return this.secondsPerBeat / 4;
+    },
+  },
+  methods: {
+    scheduleSound(trackArray, sound, counter) {
+      for (var i = 0; i < trackArray.length; i += 1) {
+        if (counter === trackArray[i]) {
+          sound.play();
+        }
+      }
+    },
+    playTick() {
+      this.counter += 1;
+      this.futureTickTime += this.counterTimeValue;
+      if (this.counter > 15) {
+        this.counter = 0;
+      }
+    },
+    scheduler() {
+      if (this.futureTickTime < audioContext.currentTime + 0.1) {
+        this.scheduleSound(this.tracks.kick, kick, this.counter);
+        this.scheduleSound(this.tracks.snare, snare, this.counter);
+        this.scheduleSound(this.tracks.hihat, hihat, this.counter);
+        this.scheduleSound(this.tracks.shaker, shaker, this.counter);
+        this.playTick();
+      }
+      this.timerID = window.setTimeout(this.scheduler, 0);
+    },
+    play() {
+      if (this.isPlaying === false) {
+        this.counter = 0;
+        this.futureTickTime = audioContext.currentTime;
+        this.scheduler();
+        this.isPlaying = true;
+      }
+    },
+    stop() {
+      if (this.isPlaying === true) {
+        window.clearTimeout(this.timerID);
+        this.isPlaying = false;
+      }
+    },
+    playSound(sound) {
+      eval(sound).play()
+    },
+    muteSound(obj) {
+      eval(obj['sound']).mute(!obj['toggle'])
+    }
+  },
 };
 </script>
