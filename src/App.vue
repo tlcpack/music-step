@@ -19,6 +19,11 @@
         @play="play"
         @stop="stop"
       ></SoundControls>
+      <SoundPresets
+        :currentPreset="currentPreset"
+        @cleartracks="clearTracks"
+        @loadpreset="loadPreset"
+      ></SoundPresets>
     </v-card>
   </v-app>
 </template>
@@ -27,6 +32,7 @@
 import { Howl } from "howler";
 import SoundTracks from "./components/SoundTracks.vue";
 import SoundControls from "./components/SoundControls.vue";
+import SoundPresets from "./components/SoundPresets.vue";
 
 const kick = new Howl({
   src: [
@@ -54,7 +60,7 @@ let audioContext = new AudioContext();
 export default {
   name: "App",
 
-  components: { SoundTracks, SoundControls },
+  components: { SoundTracks, SoundControls, SoundPresets },
   data() {
     return {
       tempo: 120,
@@ -76,6 +82,12 @@ export default {
     },
     counterTimeValue() {
       return this.secondsPerBeat / 4;
+    },
+    currentPresent() {
+      return {
+        tempo: this.tempo,
+        tracks: this.tracks,
+      };
     },
   },
   methods: {
@@ -122,6 +134,19 @@ export default {
     },
     muteSound(obj) {
       eval(obj["sound"]).mute(!obj["toggle"]);
+    },
+    clearTracks() {
+      this.tracks = {
+        kick: [],
+        snare: [],
+        hihat: [],
+        shaker: [],
+      };
+    },
+    loadPreset(preset) {
+      let presets = JSON.parse(localStorage.getItem("userPresets"));
+      this.tempo = presets[preset].tempo;
+      this.tracks = presets[preset].tracks;
     },
   },
 };
